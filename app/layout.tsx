@@ -1,3 +1,4 @@
+// app/layout.tsx
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import { Geist } from "next/font/google";
@@ -24,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={geistSans.className} suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className={geistSans.className} suppressHydrationWarning>
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
@@ -34,28 +35,28 @@ export default function RootLayout({
         >
           <main className="min-h-screen flex flex-col items-center">
             <div className="w-full max-w-6xl">
-              {/* ✅ Custom Header */}
-              <header className="flex justify-between items-center py-4 px-6 border-b border-gray-200 dark:border-gray-700">
-                <h1 className="text-xl font-bold text-blue-600">
-                  <Link href="/">ShahryPays</Link>
+              {/* ✅ Arabic Header with RTL and Higher Height */}
+              <header className="flex justify-between items-center py-6 px-6 border-b border-gray-200 dark:border-gray-700">
+                <h1 className="text-2xl font-bold text-blue-600">
+                  <Link href="/">شهري إن</Link>
                 </h1>
-                <nav className="flex gap-4 text-sm">
-                  <Link href="/employees" className="hover:underline">
-                    Employees
-                  </Link>
-                  <Link href="/reports" className="hover:underline">
-                    Reports
-                  </Link>
-                  <Link href="/payments" className="hover:underline">
-                    Payments
-                  </Link>
-                  <Link href="/notes" className="hover:underline">
-                    Notes
-                  </Link>
+                <nav className="flex gap-6 text-sm relative items-center">
+                  <Link href="/" className="hover:underline">الرئيسية</Link>
+                  <Link href="/about" className="hover:underline">من نحن</Link>
+                  <Link href="/services" className="hover:underline">الخدمات</Link>
+                  <Link href="/contact" className="hover:underline">اتصل بنا</Link>
 
-                  <Link href="/history" className="hover:underline">
-                    History
-                  </Link>
+                  {/* ✅ Dropdown Menu */}
+                  <div className="relative group">
+                    <button className="hover:underline">صفحات الموقع</button>
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                      <Link href="/employees" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">الموظفون</Link>
+                      <Link href="/payments" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">اضافة راتب</Link>
+                      <Link href="/reports" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">تقرير الموظفين</Link>
+                      <Link href="/payments/reportpdf" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">تقرير الراتب</Link>
+                      <Link href="/promotions" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">الترقيات</Link>
+                    </div>
+                  </div>
                 </nav>
               </header>
 
@@ -64,7 +65,7 @@ export default function RootLayout({
 
               {/* ✅ Footer */}
               <footer className="w-full text-center text-xs border-t py-6 text-gray-500">
-                Powered by{" "}
+                تم التطوير باستخدام{" "}
                 <a
                   href="https://supabase.com"
                   target="_blank"

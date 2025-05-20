@@ -21,7 +21,7 @@ export default function EmployeesForm() {
     bank_account: '',
     bank: '',
     hire_date: '',
-    promotion_due_date: '',
+
   });
 
   const [offices, setOffices] = useState<any[]>([]);
@@ -94,7 +94,6 @@ export default function EmployeesForm() {
       bank_account: '',
       bank: '',
       hire_date: '',
-      promotion_due_date: '',
       notes: '',
     });
     setIsEditing(false);
@@ -103,7 +102,6 @@ export default function EmployeesForm() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white rounded-xl shadow-md text-sm" dir="rtl">
-     
        <input
         type="text"
         placeholder="ابحث بالاسم"
@@ -112,9 +110,6 @@ export default function EmployeesForm() {
         className="mb-4 w-min px-1 py-1 border rounded-md text-right"
       />
       <h2 className="text-xl font-bold mb-4 text-right">نموذج الموظف</h2>
-
-    
-
       <form onSubmit={handleSubmit} className="grid grid-cols-5 gap-4 text-right">
         <div>
           <label className="block text-sm font-medium mb-1">الدائرة</label>
@@ -146,7 +141,6 @@ export default function EmployeesForm() {
           { name: 'bank_account', label: 'رقم الحساب البنكي' },
           { name: 'bank', label: 'البنك' },
           { name: 'hire_date', label: 'تاريخ التعيين', type: 'date' },
-          { name: 'promotion_due_date', label: 'تاريخ العلاوة السنوية', type: 'date' },
           { name: 'notes', label: 'الملاحظات' },
         ].map(({ name, label, type = 'text' }) => (
           <div key={name}>
