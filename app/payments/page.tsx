@@ -64,6 +64,7 @@ export default function PaymentsPage() {
   const riskPay = (s * rp) / 100;
   const retireCut = (s * rpct) / 100;
   const netSalary = s + certificatePay + riskPay + tp + totalCredits - (retireCut + totalDebits);
+
   const handleSave = async () => {
     if (!formData.employee_id || !formData.month || !s) {
       alert('الرجاء التأكد من إدخال الموظف، الشهر، والراتب.');
@@ -119,12 +120,14 @@ export default function PaymentsPage() {
     setEmployeeSearch('');
   };
 
+  const taxEntries = entryList.filter(e => e.title.trim() === 'ضريبة');
+
   return (
-    <div className="p-4 max-w-3xl mx-auto text-sm" dir="rtl">
-      <h1 className="text-lg font-bold mb-4">إدخال بيانات راتب شهري</h1>
+    <div className="p-4 max-w-4xl mx-auto text-sm" dir="rtl">
+      <h1 className="text-lg font-bold mb-4 text-center">إدخال بيانات راتب شهري</h1>
 
       <input
-        className="border p-1 px-2 w-full mb-2 rounded text-sm"
+        className="border p-2 w-full mb-2 rounded text-sm"
         placeholder="ابحث عن موظف"
         value={employeeSearch}
         onChange={e => {
@@ -134,11 +137,11 @@ export default function PaymentsPage() {
       />
 
       {dropdownOpen && employeeSearch && (
-        <div className="border max-h-32 overflow-y-auto mb-2 bg-white z-10 rounded shadow">
+        <div className="border max-h-40 overflow-y-auto mb-2 bg-white z-10 rounded shadow absolute w-full max-w-4xl">
           {filteredEmployees.map(e => (
             <div
               key={e.id}
-              className="p-1 px-2 hover:bg-gray-200 cursor-pointer text-sm"
+              className="p-2 hover:bg-gray-200 cursor-pointer text-sm"
               onClick={() => handleSelectEmployee(e)}
             >
               {e.first_name} {e.last_name}
@@ -146,19 +149,19 @@ export default function PaymentsPage() {
           ))}
         </div>
       )}
-
+    
       {formData.employee_name && (
         <div className="mb-2 text-sm">
           الموظف: <strong>{formData.employee_name}</strong>
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-2 mb-4">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-4">
         <div>
           <label className="block mb-1 text-xs font-medium">الشهر</label>
           <input
             type="month"
-            className="border p-1 px-2 w-full rounded text-sm"
+            className="border p-2 w-full rounded text-sm"
             value={formData.month || ''}
             onChange={e => setFormData({ ...formData, month: e.target.value })}
           />
@@ -167,7 +170,7 @@ export default function PaymentsPage() {
           <label className="block mb-1 text-xs font-medium">الدرجة</label>
           <input
             type="number"
-            className="border p-1 px-2 w-full rounded text-sm"
+            className="border p-2 w-full rounded text-sm"
             value={formData.degree || ''}
             onChange={e => setFormData({ ...formData, degree: e.target.value })}
           />
@@ -176,15 +179,16 @@ export default function PaymentsPage() {
           <label className="block mb-1 text-xs font-medium">المرحلة</label>
           <input
             type="number"
-            className="border p-1 px-2 w-full rounded text-sm"
+            className="border p-2 w-full rounded text-sm"
             value={formData.level || ''}
             onChange={e => setFormData({ ...formData, level: e.target.value })}
           />
         </div>
+        
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        {[
+      <div className="grid grid-cols-1 sm:grid-cols-6 gap-2 mb-4">
+        {[ 
           { label: 'الراتب الأساسي', key: 'salary' },
           { label: 'نسبة الشهادة (%)', key: 'certificate_percentage' },
           { label: 'نسبة الخطورة (%)', key: 'risk_percentage' },
@@ -194,7 +198,7 @@ export default function PaymentsPage() {
           <div key={key}>
             <label className="block mb-1 text-xs font-medium">{label}</label>
             <input
-              className="border p-1 px-2 w-full rounded text-sm"
+              className="border p-2 w-full rounded text-sm"
               type="number"
               value={formData[key] || ''}
               onChange={e => setFormData({ ...formData, [key]: +e.target.value })}
@@ -206,7 +210,7 @@ export default function PaymentsPage() {
       <div className="mb-4">
         <label className="block mb-1 text-xs font-medium">ملاحظات</label>
         <textarea
-          className="border p-1 px-2 w-full rounded text-sm"
+          className="border p-2 w-full rounded text-sm"
           value={formData.note || ''}
           onChange={e => setFormData({ ...formData, note: e.target.value })}
         />
@@ -215,23 +219,33 @@ export default function PaymentsPage() {
       <div className="border-t pt-4 mb-4">
         <h2 className="text-base font-semibold mb-2">تفاصيل دائن / مدين</h2>
         {entryList.map((entry, idx) => (
-          <div key={idx} className="grid grid-cols-4 gap-2 mb-2">
+          <div key={idx} className="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-2">
             <select
-              className="border p-1 w-full text-sm rounded"
+              className="border p-2 w-full text-sm rounded"
               value={entry.type}
               onChange={e => handleEntryChange(idx, 'type', e.target.value)}
             >
               <option value="credit">دائن</option>
               <option value="debit">مدين</option>
             </select>
-            <input
-              className="border p-1 px-2 text-sm rounded"
-              placeholder="العنوان"
+
+            <select
+              className="border p-2 text-sm rounded"
               value={entry.title}
               onChange={e => handleEntryChange(idx, 'title', e.target.value)}
-            />
+            >
+              <option value="">اختر العنوان</option>
+              <option value="م منصب">م منصب</option>
+              <option value="م زوجية">م زوجية</option>
+              <option value="م اطفال">م اطفال</option>
+              <option value="سلقة موظف">سلقة موظف</option>
+              <option value="سلقة زواج">سلقة زواج</option>
+              <option value="قرض مصرفي">قرض مصرفي</option>
+              <option value="ضريبة">ضريبة</option>
+            </select>
+
             <input
-              className="border p-1 px-2 text-sm rounded"
+              className="border p-2 text-sm rounded"
               type="number"
               placeholder="القيمة"
               value={entry.amount}
@@ -246,27 +260,52 @@ export default function PaymentsPage() {
           </div>
         ))}
         <button
-          className="bg-blue-500 text-white text-sm px-4 py-1 rounded"
+          className="bg-blue-500 text-white text-sm px-4 py-1 rounded mt-2"
           onClick={addEntry}
         >
           + إضافة إدخال
         </button>
       </div>
 
-      <div className="text-sm mb-4 space-y-1">
+      <div className="text-xl m-4 flex justify-between items-center bg-blue-100 text-blue-900 font-semibold rounded-lg p-4 max-w-4xl mx-auto">
         <div>الإجمالي الدائن: {totalCredits}</div>
         <div>الإجمالي المدين: {totalDebits}</div>
-        <div>
-          <strong>صافي الراتب: {netSalary.toFixed(2)}</strong>
-        </div>
+        <div><strong>صافي الراتب: {netSalary.toFixed(0)}</strong></div>
       </div>
 
-      <button
-        className="bg-green-600 text-white px-4 py-2 text-sm rounded"
-        onClick={handleSave}
-      >
-        حفظ البيانات
-      </button>
+
+
+      {/* ✅ Tax-only table section 
+      {taxEntries.length > 0 && (
+        <div className="border-t pt-4 mb-4">
+          <h2 className="text-base font-semibold mb-2">تفاصيل ضريبة فقط</h2>
+          <table className="w-full border text-sm text-center">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border p-2">اسم الموظف</th>
+                <th className="border p-2">المبلغ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {taxEntries.map((entry, idx) => (
+                <tr key={idx}>
+                  <td className="border p-2">{formData.employee_name || '—'}</td>
+                  <td className="border p-2">{entry.amount}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}  */}
+
+      <div className="sticky bottom-4">
+        <button
+          className="bg-green-600 text-white px-4 py-2 text-xl rounded w-full"
+          onClick={handleSave}
+        >
+          حفظ البيانات
+        </button>
+      </div>
     </div>
   );
 }

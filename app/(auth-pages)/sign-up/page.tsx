@@ -20,27 +20,27 @@ export default async function Signup(props: {
 
   return (
     <>
-      <form className="flex flex-col min-w-64 max-w-64 mx-auto">
-        <h1 className="text-2xl font-medium">Sign up</h1>
+      <form className="flex flex-col min-w-64 max-w-64 mx-auto" dir="rtl">
+        <h1 className="text-2xl font-medium">إنشاء حساب</h1>
         <p className="text-sm text text-foreground">
-          Already have an account?{" "}
+          لديك حساب بالفعل؟{" "}
           <Link className="text-primary font-medium underline" href="/sign-in">
-            Sign in
+            تسجيل الدخول
           </Link>
         </p>
         <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">البريد الإلكتروني</Label>
           <Input name="email" placeholder="you@example.com" required />
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">كلمة المرور</Label>
           <Input
             type="password"
             name="password"
-            placeholder="Your password"
+            placeholder="كلمة المرور الخاصة بك"
             minLength={6}
             required
           />
-          <SubmitButton formAction={signUpAction} pendingText="Signing up...">
-            Sign up
+          <SubmitButton formAction={signUpAction} pendingText="جارٍ التسجيل...">
+            إنشاء حساب
           </SubmitButton>
           <FormMessage message={searchParams} />
         </div>

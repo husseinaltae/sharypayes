@@ -2,6 +2,7 @@
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import { Geist } from "next/font/google";
+import { Toaster } from "react-hot-toast"; // ✅ NEW: Import toast component
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -35,35 +36,30 @@ export default function RootLayout({
         >
           <main className="min-h-screen flex flex-col items-center">
             <div className="w-full max-w-6xl">
-              {/* ✅ Arabic Header with RTL and Higher Height */}
-              <header className="flex justify-between items-center py-6 px-6 border-b border-gray-200 dark:border-gray-700">
-                <h1 className="text-2xl font-bold text-blue-600">
+              {/* ✅ Arabic Header with RTL and Responsive Design */}
+              <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-6 sm:py-10" dir="rtl">
+                <div className="text-2xl sm:text-3xl font-bold text-blue-600 text-right mb-4">
                   <Link href="/">شهري إن</Link>
-                </h1>
-                <nav className="flex gap-6 text-sm relative items-center">
-                  <Link href="/" className="hover:underline">الرئيسية</Link>
-                  <Link href="/about" className="hover:underline">من نحن</Link>
-                  <Link href="/services" className="hover:underline">الخدمات</Link>
-                  <Link href="/contact" className="hover:underline">اتصل بنا</Link>
+                </div>
 
-                  {/* ✅ Dropdown Menu */}
-                  <div className="relative group">
-                    <button className="hover:underline">صفحات الموقع</button>
-                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                      <Link href="/employees" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">الموظفون</Link>
-                      <Link href="/payments" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">اضافة راتب</Link>
-                      <Link href="/reports" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">تقرير الموظفين</Link>
-                      <Link href="/payments/reportpdf" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">تقرير الراتب</Link>
-                      <Link href="/promotions" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">الترقيات</Link>
-                    </div>
+                <nav className="w-full bg-gray-800 overflow-hidden">
+                  <div className="flex flex-wrap justify-center">
+                    <Link href="/home" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">الرئيسية</Link>
+                    {/*<Link href="/offices" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">المؤسسات</Link>*/}
+                    <Link href="/employees" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">اضافة موظف</Link>
+                    <Link href="/employees/report" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">تقرير الموظفين</Link>
+                    <Link href="/payments" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">اضافة راتب</Link>
+                    <Link href="/payments/reportpdf" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">تقرير الراتب</Link>
+                    <Link href="/retire-report" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">استقطاع تقاعدي</Link>
+                    <Link href="/promotions" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">الترقيات</Link>
+                    <Link href="/report-tax" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">تقرير الضريبة</Link>
+                    {/*<Link href="/pricing" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">الاشتراك</Link>*/}
                   </div>
                 </nav>
               </header>
 
-              {/* ✅ Page Content */}
-              <div className="p-6">{children}</div>
+              <div className="p-4 sm:p-6">{children}</div>
 
-              {/* ✅ Footer */}
               <footer className="w-full text-center text-xs border-t py-6 text-gray-500">
                 تم التطوير باستخدام{" "}
                 <a
@@ -77,6 +73,9 @@ export default function RootLayout({
               </footer>
             </div>
           </main>
+
+          {/* ✅ Toast Container */}
+          <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
         </ThemeProvider>
       </body>
     </html>
