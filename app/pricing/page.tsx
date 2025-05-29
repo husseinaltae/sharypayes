@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
+import { sub } from 'date-fns';
 
 type Office = {
   id: string;
@@ -20,11 +21,11 @@ const plans = [
   {
     name: 'الخطة الأساسية',
     price: 'مجانية',
-    features: [ 'عرض التقارير'],
+    features: [ ' بحث عن راتب موظف  ', 'بحث عن ترقية', '' ],
   },
   {
     name: 'الخطة الاحترافية',
-    price: '15000 د.ع / شهر',
+    price: '20000 د.ع / شهر',
     features: ['إدارة الرواتب', ' طباعة التقارير', 'إدارة الترقيات'],
     popular: true,
   },
@@ -46,6 +47,12 @@ export default function PricingPlanPage() {
     email: '',
     phone_number: '',
     parent_id: '',
+    subscription_start: '',
+    subscription_end: '',
+    auto_renew: false,
+    stripe_subscription_id: '',
+    subscription_expires_at: '',
+    stripe_customer_id: '',
   });
   const [paymentForm, setPaymentForm] = useState({
     cardHolder: '',
@@ -144,6 +151,12 @@ export default function PricingPlanPage() {
         email: '',
         phone_number: '',
         parent_id: '',
+        subscription_start: '',
+        subscription_end: '',
+        auto_renew: false,
+        stripe_subscription_id: '',
+        subscription_expires_at: '',
+        stripe_customer_id: '',
       });
       setPaymentForm({
         cardHolder: '',
@@ -186,7 +199,12 @@ export default function PricingPlanPage() {
         email: form.email.trim() || null,
         phone_number: form.phone_number.trim() || null,
         parent_id: form.parent_id || null,
-        
+        subscription_start: new Date().toISOString(),
+        subscription_end: null,
+        auto_renew: form.auto_renew,
+        stripe_subscription_id: form.stripe_subscription_id || null,
+        subscription_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+
       })
       .select()
       .single();
@@ -213,6 +231,12 @@ export default function PricingPlanPage() {
         email: '',
         phone_number: '',
         parent_id: '',
+        subscription_start: '',
+        subscription_end: '',
+        auto_renew: false,
+        stripe_customer_id: '',
+        stripe_subscription_id: '',
+        subscription_expires_at: '',
       });
       setPaymentForm({
         cardHolder: '',
@@ -513,7 +537,6 @@ export default function PricingPlanPage() {
                             </div>
                           </div>
                         </div>
-
                         {/* Submit Buttons */}
                         <div className="mt-8 flex justify-between items-center">
                           <button
@@ -531,7 +554,6 @@ export default function PricingPlanPage() {
                             إلغاء
                           </button>
                         </div>
-
                         {/* Status and success messages */}
                         {status && (
                           <p
@@ -553,10 +575,6 @@ export default function PricingPlanPage() {
                         )}
                       </form>
                     </div>
-
-
-
-
                     {/* Notes section at bottom */}
                     <div
                       className="mt-8 p-4 border-t border-gray-300 text-sm text-gray-700 bg-blue-50 rounded"
@@ -576,8 +594,6 @@ export default function PricingPlanPage() {
                 </motion.div>
               )}
             </AnimatePresence>;
-
-
     </div>
   );
 }

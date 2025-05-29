@@ -9,41 +9,60 @@ export default function OfficesListPage() {
   const [offices, setOffices] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isPending, startTransition] = useTransition()
+  const [statusMap, setStatusMap] = useState<Record<string, string>>({})
   const router = useRouter()
 
-  useEffect(() => {
-    const fetchOffices = async () => {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('offices')
-        .select('id, name, email, phone_number, subscription_expires_at')
+  const fetchOffices = async () => {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('offices')
+      .select('id, name, email, phone_number, subscription_expires_at')
 
-      if (error) {
-        console.error('Failed to fetch offices:', error.message)
-      } else {
-        setOffices(data)
-      }
-      setLoading(false)
+    if (error) {
+      console.error('فشل في جلب المكاتب:', error.message)
+    } else {
+      setOffices(data || [])
     }
 
+    setLoading(false)
+  }
+
+  useEffect(() => {
     fetchOffices()
   }, [])
 
   const handleExtend = async (officeId: string) => {
+    setStatusMap((prev) => ({ ...prev, [officeId]: 'جاري التفعيل...' }))
+
     startTransition(async () => {
-      await fetch('/api/offices/extend', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ officeId }),
-      })
+      try {
+        const res = await fetch('/offices_extend', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ officeId }),
+        })
 
-      // Re-fetch data after update
-      const supabase = createClient()
-      const { data } = await supabase
-        .from('offices')
-        .select('id, name, email, phone_number, subscription_expires_at')
+        const result = await res.json()
 
-      setOffices(data || [])
+        if (!res.ok) {
+          setStatusMap((prev) => ({
+            ...prev,
+            [officeId]: `❌ ${result.error || 'فشل التفعيل'}`,
+          }))
+        } else {
+          setStatusMap((prev) => ({
+            ...prev,
+            [officeId]: '✅ تم التمديد',
+          }))
+          // Refresh the office list
+          await fetchOffices()
+        }
+      } catch (error) {
+        setStatusMap((prev) => ({
+          ...prev,
+          [officeId]: '❌ خطأ في الاتصال بالخادم',
+        }))
+      }
     })
   }
 
@@ -85,14 +104,14 @@ export default function OfficesListPage() {
                 <td className="border px-3 py-2 font-semibold">
                   {expired ? 'منتهي' : 'نشط'}
                 </td>
-                <td className="border px-3 py-2">
+                <td className="border px-3 py-2 space-y-1">
                   {expired && (
                     <button
                       onClick={() => handleExtend(office.id)}
                       disabled={isPending}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded w-full"
                     >
-                      {isPending ? 'جاري التفعيل...' : 'تفعيل 30 يوم'}
+                      {statusMap[office.id] || 'تفعيل 30 يوم'}
                     </button>
                   )}
                 </td>

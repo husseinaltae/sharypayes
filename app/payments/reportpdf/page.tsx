@@ -1,14 +1,52 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
+
+// Define interfaces for our data structures
+interface Office {
+  name: string;
+  // Add id if available and used for keys, e.g., id: number;
+}
+
+interface Employee {
+  id: number | string;
+  first_name: string | null;
+  last_name: string | null;
+  office: Office | null;
+}
+
+interface PaymentEntry {
+  id: number | string;
+  type: 'credit' | 'debit';
+  title: string;
+  amount: number;
+}
+
+interface Payment {
+  id: number | string; // Assuming 'id' is the primary key from 'payments' table
+  employee: Employee | null;
+  payments_entries: PaymentEntry[] | null;
+  updated_at?: string | null;
+  degree?: string | number | null;
+  level?: string | number | null;
+  salary: number | null;
+  certificate_percentage: number | null;
+  risk_percentage: number | null;
+  trans_pay: number | null;
+  retire_percentage: number | null;
+  net_credits?: number | null;
+  net_debits?: number | null;
+  note?: string | null;
+  // Include other fields from the 'payments' table if used
+}
 
 export default function PaymentsReportPage() {
   const supabase = createClient();
   const reportRef = useRef(null);
 
-  const [payments, setPayments] = useState([]);
-  const [offices, setOffices] = useState([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [offices, setOffices] = useState<Office[]>([]);
   const [officeFilter, setOfficeFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
   const [nameFilter, setNameFilter] = useState('');
@@ -148,51 +186,58 @@ export default function PaymentsReportPage() {
     </tr>
   </thead>
   <tbody>
-    {filteredPayments.map((p) => {
+    {filteredPayments.map((p, idx) => { // Added idx for fallback key if p.id is not reliable
       const emp = p.employee;
-      const certificate_pay = (p.salary * p.certificate_percentage) / 100;
-      const risk_pay = (p.salary * p.risk_percentage) / 100;
-      const retire_cut = (p.salary * p.retire_percentage) / 100;
-      const total_credits = p.salary + certificate_pay + risk_pay + p.trans_pay + (p.net_credits || 0);
+      // Robust calculations: default null/undefined to 0
+      const salary = p.salary || 0;
+      const certificatePercentage = p.certificate_percentage || 0;
+      const riskPercentage = p.risk_percentage || 0;
+      const retirePercentage = p.retire_percentage || 0;
+      const transPay = p.trans_pay || 0;
+
+      const certificate_pay = (salary * certificatePercentage) / 100;
+      const risk_pay = (salary * riskPercentage) / 100;
+      const retire_cut = (salary * retirePercentage) / 100;
+      const total_credits = salary + certificate_pay + risk_pay + transPay + (p.net_credits || 0);
       const total_debits = retire_cut + (p.net_debits || 0);
       const net_salary = total_credits - total_debits;
 
       return (
-        <>
+        <React.Fragment key={p.id || `payment-${idx}`}> {/* Added key here */}
           <tr className="text-center">
             <td className="border p-2 print:hidden max-w-[120px] truncate">{emp?.office?.name}</td>
             <td className="border p-2">{emp?.first_name} {emp?.last_name}</td>
             <td className="border p-2">{p.degree}</td>
             <td className="border p-2">{p.level}</td>
-            <td className="border p-2">{p.salary}</td>
-            <td className="border p-2">{p.certificate_percentage}%</td>
+            <td className="border p-2">{salary}</td>
+            <td className="border p-2">{certificatePercentage}%</td>
             <td className="border p-2">{certificate_pay.toFixed(0)}</td>
-            <td className="border p-2">{p.risk_percentage}%</td>
+            <td className="border p-2">{riskPercentage}%</td>
             <td className="border p-2">{risk_pay.toFixed(0)}</td>
-            <td className="border p-2">{p.trans_pay}</td>
-            <td className="border p-2">{p.retire_percentage}%</td>
+            <td className="border p-2">{transPay}</td>
+            <td className="border p-2">{retirePercentage}%</td>
             <td className="border p-2">{retire_cut.toFixed(0)}</td>
             <td className="border p-2">{total_credits.toFixed(0)}</td>
             <td className="border p-2">{total_debits.toFixed(0)}</td>
             <td className="border p-2 font-bold">{net_salary.toFixed(0)}</td>
           </tr>
 
-          {(p.note || p.payments_entries?.length > 0) && (
+          {(p.note || (p.payments_entries && p.payments_entries.length > 0)) && (
             <tr>
               <td colSpan={15} className="border p-2 text-xs">
-                {p.payments_entries?.length > 0 && (
+                {p.payments_entries && p.payments_entries.length > 0 && (
                   <div>
                     {p.payments_entries.map((entry) => {
                       const typeLabel = entry.type === 'credit' ? 'دائن' : 'مدين';
                       return `• ${entry.title} (${typeLabel}) ${entry.amount}`;
-                        }).join(' ؛ ')}
-                      </div>
-                        )}
-                        {p.note && <div className="mt-1">ملاحظة: {p.note}</div>}
-                      </td>
-                        </tr>
-                              )}
-                            </>
+                    }).join(' ؛ ')}
+                  </div>
+                )}
+                {p.note && <div className="mt-1">ملاحظة: {p.note}</div>}
+              </td>
+            </tr>
+          )}
+        </React.Fragment>
                           );
                         })}
                       </tbody>
@@ -205,27 +250,38 @@ export default function PaymentsReportPage() {
           {/* Totals Summary */}
           <div className="mt-6 text-sm border-t pt-4 grid grid-cols-1 sm:grid-cols-5 gap-4 font-semibold text-center">
             <div>إجمالي الراتب: {filteredPayments.reduce((sum, p) => sum + (p.salary || 0), 0).toFixed(0)}</div>
-            <div>إجمالي بدل الشهادة: {filteredPayments.reduce((sum, p) => sum + ((p.salary * p.certificate_percentage) / 100 || 0), 0).toFixed(0)}</div>
-            <div>إجمالي بدل الخطورة: {filteredPayments.reduce((sum, p) => sum + ((p.salary * p.risk_percentage) / 100 || 0), 0).toFixed(0)}</div>
-            <div>إجمالي استقطاع التقاعد: {filteredPayments.reduce((sum, p) => sum + ((p.salary * p.retire_percentage) / 100 || 0), 0).toFixed(0)}</div>
+            <div>إجمالي بدل الشهادة: {filteredPayments.reduce((sum, p) => sum + (((p.salary || 0) * (p.certificate_percentage || 0)) / 100 || 0), 0).toFixed(0)}</div>
+            <div>إجمالي بدل الخطورة: {filteredPayments.reduce((sum, p) => sum + (((p.salary || 0) * (p.risk_percentage || 0)) / 100 || 0), 0).toFixed(0)}</div>
+            <div>إجمالي استقطاع التقاعد: {filteredPayments.reduce((sum, p) => sum + (((p.salary || 0) * (p.retire_percentage || 0)) / 100 || 0), 0).toFixed(0)}</div>
             <div>اجمالي الدائن: {filteredPayments.reduce((sum, p) => sum + (p.net_credits || 0), 0).toFixed(0)}</div>
             <div>اجمالي المدين: {filteredPayments.reduce((sum, p) => sum + (p.net_debits || 0), 0).toFixed(0)}</div>
             <div>اجمالي الاستحقاق: {filteredPayments.reduce((sum, p) => {
-              const cert = (p.salary * p.certificate_percentage) / 100;
-              const risk = (p.salary * p.risk_percentage) / 100;
-              const credits = p.salary + cert + risk + p.trans_pay + (p.net_credits || 0);
+              const salary = p.salary || 0;
+              const certPercentage = p.certificate_percentage || 0;
+              const riskPercentage = p.risk_percentage || 0;
+              const transPay = p.trans_pay || 0;
+              const cert = (salary * certPercentage) / 100;
+              const risk = (salary * riskPercentage) / 100;
+              const credits = salary + cert + risk + transPay + (p.net_credits || 0);
               return sum + credits;
             }, 0).toFixed(0)}</div>
             <div>اجمالي الاستقطاع: {filteredPayments.reduce((sum, p) => {
-              const retire = (p.salary * p.retire_percentage) / 100;
+              const salary = p.salary || 0;
+              const retirePercentage = p.retire_percentage || 0;
+              const retire = (salary * retirePercentage) / 100;
               const debits = retire + (p.net_debits || 0);
               return sum + debits;
             }, 0).toFixed(0)}</div>
             <div>الصافي الكلي: {filteredPayments.reduce((sum, p) => {
-              const cert = (p.salary * p.certificate_percentage) / 100;
-              const risk = (p.salary * p.risk_percentage) / 100;
-              const retire = (p.salary * p.retire_percentage) / 100;
-              const credits = p.salary + cert + risk + p.trans_pay + (p.net_credits || 0);
+              const salary = p.salary || 0;
+              const certPercentage = p.certificate_percentage || 0;
+              const riskPercentage = p.risk_percentage || 0;
+              const retirePercentage = p.retire_percentage || 0;
+              const transPay = p.trans_pay || 0;
+              const cert = (salary * certPercentage) / 100;
+              const risk = (salary * riskPercentage) / 100;
+              const retire = (salary * retirePercentage) / 100;
+              const credits = salary + cert + risk + transPay + (p.net_credits || 0);
               const debits = retire + (p.net_debits || 0);
               return sum + (credits - debits);
             }, 0).toFixed(0)}</div>

@@ -120,8 +120,6 @@ export default function PaymentsPage() {
     setEmployeeSearch('');
   };
 
-  const taxEntries = entryList.filter(e => e.title.trim() === 'ضريبة');
-
   return (
     <div className="p-4 max-w-4xl mx-auto text-sm" dir="rtl">
       <h1 className="text-lg font-bold mb-4 text-center">إدخال بيانات راتب شهري</h1>
@@ -274,29 +272,6 @@ export default function PaymentsPage() {
       </div>
 
 
-
-      {/* ✅ Tax-only table section 
-      {taxEntries.length > 0 && (
-        <div className="border-t pt-4 mb-4">
-          <h2 className="text-base font-semibold mb-2">تفاصيل ضريبة فقط</h2>
-          <table className="w-full border text-sm text-center">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border p-2">اسم الموظف</th>
-                <th className="border p-2">المبلغ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {taxEntries.map((entry, idx) => (
-                <tr key={idx}>
-                  <td className="border p-2">{formData.employee_name || '—'}</td>
-                  <td className="border p-2">{entry.amount}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}  */}
 
       <div className="sticky bottom-4">
         <button

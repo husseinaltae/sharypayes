@@ -2,15 +2,37 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import type { User } from '@supabase/supabase-js'; // For typing the user state
+
+// Define interfaces for better type safety
+interface Office {
+  id: string; // Assuming string ID (e.g., UUID). Change to number if appropriate for your DB schema.
+  name: string;
+}
+
+interface EmployeeForPayment {
+  id: string; // Assuming string ID.
+  first_name: string | null;
+  office_id: string | null; // Assuming string ID, foreign key to Office.id
+  offices: Office | null; // Joined office details from employees table
+}
+
+interface Payment {
+  created_at: string; // ISO date string
+  salary: number | null;
+  retire_note: string | null;
+  employee_id: string; // Assuming string ID, foreign key to Employee.id
+  employees: EmployeeForPayment | null; // Related employee details, can be null
+}
 
 const RetireReport = () => {
   const supabase = createClient();
-  const [data, setData] = useState([]);
-  const [offices, setOffices] = useState([]);
+  const [data, setData] = useState<Payment[]>([]);
+  const [offices, setOffices] = useState<Office[]>([]);
   const [selectedOffice, setSelectedOffice] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
   const [percentage, setPercentage] = useState(15);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const now = new Date();
   const formattedDate = now.toLocaleDateString();
