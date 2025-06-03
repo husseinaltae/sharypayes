@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.ns", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "esnext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"],
+      "include": ["index.ts"],
+      "exclude": []
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": ["index.ts"]
+    },
+    "options": {
+      "useTabs": false,
+      "lineWidth": 80,
+      "indentWidth": 2,
+      "singleQuote": false
+    }
+  },
+  "tasks": {
+    "dev": "deno run --watch --allow-all index.ts"
+  },
+  "imports": {
+    "jsr:@supabase/supabase-js": "jsr:@supabase/supabase-js@^2.43.4",
+    "jsr:@supabase/functions-js/": "jsr:@supabase/functions-js@^2.0.0/"
+  }
+}

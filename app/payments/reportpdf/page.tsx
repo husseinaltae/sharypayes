@@ -157,7 +157,6 @@ export default function PaymentsReportPage() {
               {officeFilter && <div>الدائرة: {officeFilter}</div>}
               {monthFilter && <div>الشهر: {monthFilter}</div>}
             </div>
-            <div className="text-sm">{today}</div>
           </div>
 
           <h1 className="text-xl font-bold mb-4 text-center">تقرير الرواتب</h1>

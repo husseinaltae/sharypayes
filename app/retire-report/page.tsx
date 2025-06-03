@@ -34,9 +34,6 @@ const RetireReport = () => {
   const [percentage, setPercentage] = useState(15);
   const [user, setUser] = useState<User | null>(null);
 
-  const now = new Date();
-  const formattedDate = now.toLocaleDateString();
-  const formattedTime = now.toLocaleTimeString();
 
   useEffect(() => {
     const getUser = async () => {
@@ -55,16 +52,21 @@ const RetireReport = () => {
   };
 
   const fetchData = async () => {
-    const { data } = await supabase
+    const { data: resultData, error: fetchError } = await supabase
       .from('payments')
       .select('created_at, salary, retire_note, employee_id, employees(id, first_name, office_id, offices(id, name))')
       .order('created_at', { ascending: false });
 
-    setData(data || []);
+    if (fetchError) {
+      console.error('Error fetching payment data:', fetchError);
+      setData([]); // Set to empty array on error
+    } else {
+      setData((resultData as unknown as Payment[]) || []); // Cast to unknown then Payment[]
+    }
   };
 
   const filteredData = data.filter((item) => {
-    const matchesOffice = selectedOffice ? item.employees.offices?.id === selectedOffice : true;
+    const matchesOffice = selectedOffice ? item.employees?.offices?.id === selectedOffice : true;
     const matchesMonth = selectedMonth
       ? new Date(item.created_at).toISOString().slice(0, 7) === selectedMonth
       : true;
@@ -76,7 +78,9 @@ const RetireReport = () => {
     if (!table) return;
 
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
+
+    if (printWindow) {
+      printWindow.document.write(`
       <html dir="rtl" lang="ar">
         <head>
           <title>طباعة تقرير الاستقطاع</title>
@@ -96,10 +100,13 @@ const RetireReport = () => {
         </body>
       </html>
     `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    } else {
+      alert("Popup blocked! Please allow popups for this site to print the report.");
+    }
   };
 
   const totalSalary = filteredData.reduce((sum, item) => sum + (item.salary || 0), 0);
@@ -150,7 +157,6 @@ const RetireReport = () => {
         <div id="report-content" className="text-sm">
           <div className="header">
             <div>{offices.find(o => o.id === selectedOffice)?.name || 'كل الدوائر'} - {selectedMonth || 'كل الأشهر'}</div>
-            <div>{formattedDate} - {formattedTime}</div>
           </div>
 
           <table className="w-full border border-black text-center">
@@ -167,7 +173,7 @@ const RetireReport = () => {
             <tbody>
               {filteredData.map((row, idx) => (
                 <tr key={idx}>
-                  <td className="border text-right px-1">{row.employees.offices?.name}</td>
+                  <td className="border text-right px-1">{row.employees?.offices?.name}</td>
                   <td className="border text-right px-1">{row.employees?.first_name}</td>
                   <td className="border">{row.salary}</td>
                   <td className="border">{percentage}%</td>

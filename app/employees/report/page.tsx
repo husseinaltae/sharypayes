@@ -140,6 +140,7 @@ export default function EmployeeReport() {
                     <th className="border px-1 py-1 w-[85px]">الرقم الوطني</th>
                     <th className="border px-1 py-1 w-[85px]">تاريخ الميلاد</th>
                     <th className="border px-1 py-1 w-[87px]">رقم موبايل</th>
+                    <th className="border px-1 py-1 w-[87px]">بريد الكتروني </th>
                     <th className="border px-1 py-1 w-[160px]">عنوان السكن</th>
                     <th className="border px-1 py-1 w-[60px]">شهادة علمية</th>
                     <th className="border px-1 py-1 w-[90px]">عنوان وظيفي</th>
@@ -155,6 +156,7 @@ export default function EmployeeReport() {
                       <td className="border px-1 py-1 break-words">{e.id_number}</td>
                       <td className="border px-1 py-1 break-words">{e.birthdate}</td>
                       <td className="border px-1 py-1 break-words">{e.phone_no}</td>
+                      <td className="border px-1 py-1 break-words">{e.email}</td>
                       <td className="border px-1 py-1 break-words">{e.address}</td>
                       <td className="border px-1 py-1 break-words">{e.certificate}</td>
                       <td className="border px-1 py-1 break-words">{e.job_title}</td>

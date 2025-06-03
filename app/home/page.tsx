@@ -31,12 +31,7 @@ export default function WelcomePage() {
         <p className="text-base sm:text-lg md:text-xl text-gray-700 max-w-md mx-auto md:mx-0">
           يمكنك من خلال هذا النظام الاطلاع على راتبك الشهري، الترقيات، والتقارير الخاصة بك بسهولة وسرعة.
         </p>
-        <Link
-          href="/pricing"
-          className="bg-blue-600 text-white px-6 py-3 rounded-full text-lg hover:bg-blue-700 transition"
-        >
-          الدخول إلى النظام
-        </Link>
+
       </div>
 
       {/* Image Slider Section */}

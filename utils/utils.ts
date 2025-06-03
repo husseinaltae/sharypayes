@@ -7,10 +7,18 @@ import { redirect } from "next/navigation";
  * @param {string} message - The message to be encoded and added as a query parameter.
  * @returns {never} This function doesn't return as it triggers a redirect.
  */
+
+
+
+
+
 export function encodedRedirect(
   type: "error" | "success",
   path: string,
-  message: string,
+  message: string
 ) {
-  return redirect(`${path}?${type}=${encodeURIComponent(message)}`);
+  const url = new URL(path, "http://localhost"); // base is arbitrary for URL parsing
+  url.searchParams.set("status", type);
+  url.searchParams.set("message", message);
+  return redirect(`${url.pathname}?${url.searchParams.toString()}`);
 }

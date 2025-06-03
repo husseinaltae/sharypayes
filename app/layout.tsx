@@ -4,6 +4,10 @@ import Link from "next/link";
 import { Geist } from "next/font/google";
 import { Toaster } from "react-hot-toast"; // ✅ NEW: Import toast component
 import "./globals.css";
+import { AuthButton } from "@/components/AuthButton";
+
+
+
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -25,6 +29,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  
   return (
     <html lang="ar" dir="rtl" className={geistSans.className} suppressHydrationWarning>
       <body className="bg-background text-foreground">
@@ -38,14 +43,26 @@ export default function RootLayout({
             <div className="w-full max-w-6xl">
               {/* ✅ Arabic Header with RTL and Responsive Design */}
               <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-6 sm:py-10" dir="rtl">
-                <div className="text-2xl sm:text-3xl font-bold text-blue-600 text-right mb-4">
-                  <Link href="/">شهري إن</Link>
-                </div>
+  
+  
+
+<div className="flex justify-between items-center mb-4">
+  <div className="text-2xl sm:text-3xl font-bold text-blue-600">
+    <Link href="/">شهري إن</Link>
+  </div>
+  <AuthButton />
+</div>
+
+
+
+
+
+                
 
                 <nav className="w-full bg-gray-800 overflow-hidden">
                   <div className="flex flex-wrap justify-center">
                     <Link href="/home" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">الرئيسية</Link>
-                    {/*<Link href="/offices" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">المؤسسات</Link>*/}
+                    <Link href="/offices_list" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">المؤسسات</Link>
                     <Link href="/employees" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">اضافة موظف</Link>
                     <Link href="/employees/report" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">تقرير الموظفين</Link>
                     <Link href="/payments" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">اضافة راتب</Link>
@@ -53,7 +70,9 @@ export default function RootLayout({
                     <Link href="/retire-report" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">استقطاع تقاعدي</Link>
                     <Link href="/promotions" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">الترقيات</Link>
                     <Link href="/report-tax" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">تقرير الضريبة</Link>
-                    {/*<Link href="/pricing" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">الاشتراك</Link>*/}
+                    <Link href="/pricing" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">الاشتراك</Link>
+                  
+
                   </div>
                 </nav>
               </header>

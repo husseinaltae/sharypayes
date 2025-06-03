@@ -13,9 +13,10 @@ export default function OfficesListPage() {
   const router = useRouter()
 
   const fetchOffices = async () => {
+    setLoading(true)
     const supabase = createClient()
     const { data, error } = await supabase
-      .from('offices')
+      .from('offices_with_latest_activity')
       .select('id, name, email, phone_number, subscription_expires_at')
 
     if (error) {
@@ -31,7 +32,7 @@ export default function OfficesListPage() {
     fetchOffices()
   }, [])
 
-  const handleExtend = async (officeId: string) => {
+  const handleExtend = (officeId: string) => {
     setStatusMap((prev) => ({ ...prev, [officeId]: 'جاري التفعيل...' }))
 
     startTransition(async () => {
@@ -54,7 +55,7 @@ export default function OfficesListPage() {
             ...prev,
             [officeId]: '✅ تم التمديد',
           }))
-          // Refresh the office list
+          // Refresh the office list data after extension
           await fetchOffices()
         }
       } catch (error) {
@@ -92,7 +93,10 @@ export default function OfficesListPage() {
               new Date(office.subscription_expires_at) < now
 
             return (
-              <tr key={office.id} className={expired ? 'bg-red-50' : 'bg-green-50'}>
+              <tr
+                key={office.id}
+                className={expired ? 'bg-red-50' : 'bg-green-50'}
+              >
                 <td className="border px-3 py-2">{office.name}</td>
                 <td className="border px-3 py-2">{office.email}</td>
                 <td className="border px-3 py-2">{office.phone_number}</td>
@@ -108,7 +112,7 @@ export default function OfficesListPage() {
                   {expired && (
                     <button
                       onClick={() => handleExtend(office.id)}
-                      disabled={isPending}
+                      disabled={isPending || loading}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded w-full"
                     >
                       {statusMap[office.id] || 'تفعيل 30 يوم'}

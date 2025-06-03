@@ -37,6 +37,7 @@
     ".next/types/**/*.ts"
 , ".next/types/app/payments/report2/page.tsx", ".next/types/app/payments/report/page.tsx", ".next/types/app/payments/page.tsx"  ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "supabase/functions"
   ]
 }
