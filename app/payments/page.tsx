@@ -271,6 +271,12 @@ export default function PaymentsPage() {
         <div><strong>صافي الراتب: {netSalary.toFixed(0)}</strong></div>
       </div>
 
+      <div className="text-xl m-4 flex justify-between items-center bg-blue-100 text-blue-900 font-semibold rounded-lg p-4 max-w-4xl mx-auto">
+        <div>الإجمالي الدائن: {totalCredits + s + certificatePay + riskPay + tp } </div>
+        <div>الإجمالي المدين: {totalDebits + retireCut}</div>
+        <div><strong>صافي الراتب: {netSalary.toFixed(0)}</strong></div>
+      </div>
+
 
 
       <div className="sticky bottom-4">
