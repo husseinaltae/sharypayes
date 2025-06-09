@@ -73,6 +73,7 @@ export default function PaymentsPage() {
     }
 
     const insertPayload = {
+      month: `${formData.month}-01`,
       degree: +formData.degree || 0,
       level: +formData.level || 0,
       salary: s,
@@ -89,7 +90,7 @@ export default function PaymentsPage() {
       risk_pay: riskPay,
       retire_cut: retireCut,
       note: formData.note || '',
-      month: `${formData.month}-01`,
+
     };
 
     const { data: payment, error } = await supabase

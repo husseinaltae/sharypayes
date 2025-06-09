@@ -62,15 +62,15 @@ export default function RootLayout({
                 <nav className="w-full bg-gray-800 overflow-hidden">
                   <div className="flex flex-wrap justify-center">
                     <Link href="/home" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">الرئيسية</Link>
-                    <Link href="/offices_list" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">المؤسسات</Link>
-                    <Link href="/employees" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">اضافة موظف</Link>
+                    {/* <Link href="/offices_list" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">المؤسسات</Link> */}
+                    {/*<Link href="/employees/new" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">اضافة موظف</Link>*/}
                     <Link href="/employees/report" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">تقرير الموظفين</Link>
-                    <Link href="/payments" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">اضافة راتب</Link>
-                    <Link href="/payments/reportpdf" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">تقرير الراتب</Link>
+                    {/*<Link href="/payments" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">اضافة راتب</Link>*/}
+                    <Link href="/payments/report" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">تقرير الراتب</Link>
                     <Link href="/retire-report" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">استقطاع تقاعدي</Link>
                     <Link href="/promotions" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">الترقيات</Link>
                     <Link href="/report-tax" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">تقرير الضريبة</Link>
-                    <Link href="/pricing" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">الاشتراك</Link>
+                    {/*<Link href="/pricing" className="text-white text-sm sm:text-base px-4 py-3 hover:bg-gray-300 hover:text-black">الاشتراك</Link>*/}
                   
 
                   </div>

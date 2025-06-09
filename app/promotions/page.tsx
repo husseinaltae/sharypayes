@@ -27,6 +27,10 @@ export default function PromotionsPage() {
   const [searchDate, setSearchDate] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [newPromotion, setNewPromotion] = useState<any>({});
+  const [employeeSearch, setEmployeeSearch] = useState('');
+  const [employeeDropdown, setEmployeeDropdown] = useState<any[]>([]);
+  const [committeeMembers, setCommitteeMembers] = useState<{ [key: string]: string }>({});
+  const [users, setUsers] = useState<any[]>([]);
   const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,8 +47,6 @@ export default function PromotionsPage() {
     fetchData();
   }, []);
 
-  
-
   const getEmployee = (id: string) => employees.find(e => e.id === id);
   const getOfficeName = (id: string) => offices.find(o => o.id === id)?.name || '—';
 
@@ -54,64 +56,70 @@ export default function PromotionsPage() {
     );
   };
 
-  const handleSaveAll = async () => {
-    try {
-      for (const promo of promotions) {
-        const { error } = await supabase
-          .from('promotions')
-          .update({
-            old_degree: promo.old_degree || null,
-            old_level: promo.old_level || null,
-            old_salary: promo.old_salary || null,
-            new_degree: promo.new_degree || null,
-            new_level: promo.new_level || null,
-            new_salary: promo.new_salary || null,
-            due_date: promo.due_date || null,
-            note: promo.note || null,
-          })
-          .eq('id', promo.id);
-
-        if (error) {
-          console.error('Error saving promotion', promo.id, error);
-          alert(`حدث خطأ أثناء حفظ الترقية: ${promo.id}`);
-          return;
-        }
-      }
-      alert('تم حفظ جميع التحديثات بنجاح');
-    } catch (err) {
-      console.error(err);
-      alert('حدث خطأ غير متوقع أثناء الحفظ');
+  const handleInsertOrUpdate = async () => {
+    if (!newPromotion.employee_id) {
+      alert('الرجاء اختيار موظف.');
+      return;
     }
-  };
-
-  const handleInsert = async () => {
-    const emp = getEmployee(newPromotion.employee_id);
-    if (!emp) return alert('يجب اختيار موظف');
   
-    const insertData = {
-      ...newPromotion,
-      old_degree: parseInt(newPromotion.old_degree) || null,
-      old_level: parseInt(newPromotion.old_level) || null,
-      old_salary: parseFloat(newPromotion.old_salary) || null,
-      new_degree: parseInt(newPromotion.new_degree) || null,
-      new_level: parseInt(newPromotion.new_level) || null,
-      new_salary: parseFloat(newPromotion.new_salary) || null,
-    };
+    let error = null;
   
-    const { error } = await supabase.from('promotions').insert(insertData);
+    if (newPromotion.id) {
+      // Update logic
+      const updatePayload = {
+        employee_id: newPromotion.employee_id,
+        old_degree: newPromotion.old_degree ?? null,
+        old_level: newPromotion.old_level ?? null,
+        old_salary: newPromotion.old_salary ?? null,
+        new_degree: newPromotion.new_degree ?? null,
+        new_level: newPromotion.new_level ?? null,
+        new_salary: newPromotion.new_salary ?? null,
+        due_date: newPromotion.due_date?.trim() || null,
+        note: newPromotion.note?.trim() || null,
+      };
+  
+      const { error: updateError } = await supabase
+        .from('promotions')
+        .update(updatePayload)
+        .eq('id', newPromotion.id);
+  
+      error = updateError;
+    } else {
+      // Insert logic
+      const insertPayload = {
+        employee_id: newPromotion.employee_id,
+        old_degree: newPromotion.old_degree ?? null,
+        old_level: newPromotion.old_level ?? null,
+        old_salary: newPromotion.old_salary ?? null,
+        new_degree: newPromotion.new_degree ?? null,
+        new_level: newPromotion.new_level ?? null,
+        new_salary: newPromotion.new_salary ?? null,
+        due_date: newPromotion.due_date?.trim() || null,
+        note: newPromotion.note?.trim() || null,
+      };
+  
+      const { error: insertError } = await supabase
+        .from('promotions')
+        .insert([insertPayload]);
+  
+      error = insertError;
+    }
+  
     if (error) {
-      console.error(error);
-      return alert('حدث خطأ أثناء الإدخال');
+      console.error('Database error:', error.message);
+      alert('حدث خطأ أثناء الحفظ: ' + error.message);
+      return;
     }
   
-    alert('تم الحفظ بنجاح');  // <-- Your success message
-  
+    alert('تم الحفظ بنجاح');
     setShowForm(false);
-    // Instead of location.reload(), fetch promotions again:
-    const { data: promoData } = await supabase.from('promotions').select('*');
-    setPromotions(promoData || []);
+    setNewPromotion({ employee_id: '' });
+  
+    const { data } = await supabase.from('promotions').select('*');
+    setPromotions(data || []);
   };
   
+
   const printTable = () => {
     if (!reportRef.current) return;
     const printContent = reportRef.current.innerHTML;
@@ -138,26 +146,27 @@ export default function PromotionsPage() {
     return showByName || showByOffice;
   });
 
-  const shouldShowData = (searchDate && (searchName || searchOffice));
+  const shouldShowData = searchDate && (searchName || searchOffice);
+
   const deleteUser = async (id: string) => {
     const { error } = await supabase.from("users").delete().eq("id", id);
     if (error) {
       console.error("Error deleting user:", error.message);
     } else {
-      // Refresh the data after deletion
-      const { data, error } = await supabase.from("users").select("*");
-      if (error) {
-        console.error("Error fetching users:", error.message);
+      const { data, error: fetchError } = await supabase.from("users").select("*");
+      if (fetchError) {
+        console.error("Error fetching users:", fetchError.message);
       } else {
         setUsers(data);
       }
     }
   };
+
   const handleDelete = async (id: string) => {
     if (!confirm('هل أنت متأكد من حذف هذه الترقية؟')) return;
-  
+
     const { error } = await supabase.from('promotions').delete().eq('id', id);
-  
+
     if (error) {
       alert('حدث خطأ أثناء الحذف');
       console.error('Delete error:', error);
@@ -167,10 +176,25 @@ export default function PromotionsPage() {
     }
   };
 
-
-
+  const handleEdit = (promotion: Promotion) => {
+    setNewPromotion({
+      id: promotion.id,
+      employee_id: promotion.employee_id || '',
+      old_degree: promotion.old_degree ?? '',
+      old_level: promotion.old_level ?? '',
+      old_salary: promotion.old_salary ?? '',
+      new_degree: promotion.new_degree ?? '',
+      new_level: promotion.new_level ?? '',
+      new_salary: promotion.new_salary ?? '',
+      due_date: promotion.due_date ?? '',
+      note: promotion.note ?? '',
+    });
+    setShowForm(true);
+  };
+  
   return (
     <div className="p-4 text-sm" dir="rtl">
+      {/* Filters and Actions */}
       <div className="flex flex-wrap gap-2 items-center mb-4">
         <input
           type="text"
@@ -178,11 +202,13 @@ export default function PromotionsPage() {
           className="border p-2 rounded flex-grow min-w-[180px]"
           value={searchName}
           onChange={e => setSearchName(e.target.value)}
+          aria-label="بحث بالاسم"
         />
         <select
           className="border p-2 rounded min-w-[150px]"
           value={searchOffice}
           onChange={e => setSearchOffice(e.target.value)}
+          aria-label="اختر الدائرة"
         >
           <option value="">الدائرة</option>
           {offices.map(o => (
@@ -194,81 +220,236 @@ export default function PromotionsPage() {
           className="border p-2 rounded min-w-[150px]"
           value={searchDate}
           onChange={e => setSearchDate(e.target.value)}
+          aria-label="اختر التاريخ"
         />
         <button
           className="bg-green-600 text-white px-4 py-2 rounded whitespace-nowrap"
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            setNewPromotion({
+              id: '',
+              employee_id: '',
+              old_degree: '',
+              old_level: '',
+              old_salary: '',
+              new_degree: '',
+              new_level: '',
+              new_salary: '',
+              due_date: '',
+              note: '',
+            });
+            setEmployeeSearch('');
+            setEmployeeDropdown([]);
+            setShowForm(true);
+          }}
+          aria-haspopup="dialog"
+          aria-expanded={showForm}
         >
           إضافة ترقية جديدة
         </button>
-        {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-xl w-full max-w-2xl text-sm">
-            <h2 className="text-lg font-bold mb-4">اختر الموظف</h2>
-
-            <input
-              type="text"
-              placeholder="ابحث عن اسم الموظف"
-              className="border p-2 rounded w-full mb-4"
-              onChange={e => {
-                const search = e.target.value.toLowerCase();
-                const match = employees.find(emp =>
-                  `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(search)
-                );
-                if (match) {
-                  setNewPromotion({ ...newPromotion, employee_id: match.id });
-                }
-              }}
-            />
-
-            {newPromotion.employee_id && (
-              <div className="mb-4 text-green-700 font-bold">
-                الموظف : {
-                  employees.find(e => e.id === newPromotion.employee_id)?.first_name
-                } - {
-                  employees.find(e => e.id === newPromotion.employee_id)?.last_name
-                }
-              </div>
-            )}
-
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <input type="number" placeholder="الدرجة الحالية" className="border p-2 rounded" onChange={e => setNewPromotion({ ...newPromotion, old_degree: e.target.value })} />
-              <input type="number" placeholder="المرحلة الحالية" className="border p-2 rounded" onChange={e => setNewPromotion({ ...newPromotion, old_level: e.target.value })} />
-              <input type="number" placeholder="الراتب الحالي" className="border p-2 rounded" onChange={e => setNewPromotion({ ...newPromotion, old_salary: e.target.value })} />
-              <input type="number" placeholder="الدرجة الجديدة" className="border p-2 rounded" onChange={e => setNewPromotion({ ...newPromotion, new_degree: e.target.value })} />
-              <input type="number" placeholder="المرحلة الجديدة" className="border p-2 rounded" onChange={e => setNewPromotion({ ...newPromotion, new_level: e.target.value })} />
-              <input type="number" placeholder="الراتب الجديد" className="border p-2 rounded" onChange={e => setNewPromotion({ ...newPromotion, new_salary: e.target.value })} />
-              <input type="date" className="border p-2 rounded" value={newPromotion.due_date || ''} onChange={e => setNewPromotion({ ...newPromotion, due_date: e.target.value })} />
-              <textarea
-  placeholder="ملاحظة"
-  className="border p-2 rounded col-span-2"
-  rows={3}
-  onChange={e => setNewPromotion({ ...newPromotion, note: e.target.value })}
-/>
-
-            </div>
-
-            <div className="flex justify-between">
-              <button className="bg-green-600 text-white px-4 py-2 rounded" onClick={handleInsert}>حفظ</button>
-              <button className="bg-gray-500 text-white px-4 py-2 rounded" onClick={() => setShowForm(false)}>إلغاء</button>
-            </div>
-          </div>
-        </div>
-        
-      )}
+  
         <button
           className="bg-gray-600 text-white px-4 py-2 rounded whitespace-nowrap"
           onClick={printTable}
         >
           طباعة التقرير
         </button>
-
       </div>
-
+  
+      {/* Modal Form */}
+      {showForm && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        >
+          <div className="bg-white p-6 rounded shadow-xl w-full max-w-2xl text-sm max-h-[90vh] overflow-auto">
+            <h2 id="modal-title" className="text-lg font-bold mb-4">اختر الموظف</h2>
+  
+            {/* Employee Search Input */}
+            <input
+              type="text"
+              placeholder="ابحث عن اسم الموظف"
+              className="border p-2 rounded w-full mb-2"
+              value={employeeSearch}
+              onChange={e => {
+                const val = e.target.value;
+                setEmployeeSearch(val);
+  
+                if (val.trim() === '') {
+                  setEmployeeDropdown([]);
+                  setNewPromotion((prev: typeof newPromotion) => ({ ...prev, employee_id: '' }));
+                  return;
+                }
+  
+                const filtered = employees.filter(emp =>
+                  `${emp.first_name} ${emp.last_name}`
+                    .toLowerCase()
+                    .includes(val.toLowerCase())
+                );
+                setEmployeeDropdown(filtered);
+              }}
+              aria-autocomplete="list"
+              aria-controls="employee-listbox"
+              aria-expanded={employeeDropdown.length > 0}
+            />
+  
+            {/* Employee Dropdown */}
+            {employeeDropdown.length > 0 && (
+              <ul
+                id="employee-listbox"
+                role="listbox"
+                className="border rounded max-h-48 overflow-auto mb-4"
+              >
+                {employeeDropdown.map(emp => (
+                  <li
+                    key={emp.id}
+                    role="option"
+                    aria-selected={newPromotion.employee_id === emp.id}
+                    className={`p-2 cursor-pointer hover:bg-gray-200 ${
+                      newPromotion.employee_id === emp.id ? 'bg-gray-300 font-bold' : ''
+                    }`}
+                    onClick={() => {
+                      setNewPromotion((prev: typeof newPromotion) => ({ ...prev, employee_id: emp.id }));
+                      setEmployeeSearch(`${emp.first_name} ${emp.last_name}`);
+                      setEmployeeDropdown([]);
+                    }}
+                  >
+                    {emp.first_name} {emp.last_name}
+                  </li>
+                ))}
+              </ul>
+            )}
+  
+            {/* Selected Employee Display */}
+            {newPromotion.employee_id && (
+              <div className="mb-4 text-green-700 font-bold">
+                الموظف: {(() => {
+                  const emp = employees.find(e => e.id === newPromotion.employee_id);
+                  return emp ? `${emp.first_name} ${emp.last_name}` : '';
+                })()}
+              </div>
+            )}
+  
+            {/* Promotion Fields */}
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div>
+                <label htmlFor="old_degree" className="block font-semibold mb-1">الدرجة الحالية</label>
+                <input
+                  id="old_degree"
+                  type="number"
+                  placeholder="الدرجة الحالية"
+                  className="border p-2 rounded w-full"
+                  value={newPromotion.old_degree || ''}
+                  onChange={e => setNewPromotion((prev: typeof newPromotion) => ({ ...prev, old_degree: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label htmlFor="old_level" className="block font-semibold mb-1">المرحلة الحالية</label>
+                <input
+                  id="old_level"
+                  type="number"
+                  placeholder="المرحلة الحالية"
+                  className="border p-2 rounded w-full"
+                  value={newPromotion.old_level || ''}
+                  onChange={e => setNewPromotion((prev: typeof newPromotion) => ({ ...prev, old_level: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label htmlFor="old_salary" className="block font-semibold mb-1">الراتب الحالي</label>
+                <input
+                  id="old_salary"
+                  type="number"
+                  placeholder="الراتب الحالي"
+                  className="border p-2 rounded w-full"
+                  value={newPromotion.old_salary || ''}
+                  onChange={e => setNewPromotion((prev: typeof newPromotion) => ({ ...prev, old_salary: e.target.value }))}
+                />
+              </div>
+  
+              <div>
+                <label htmlFor="new_degree" className="block font-semibold mb-1">الدرجة الجديدة</label>
+                <input
+                  id="new_degree"
+                  type="number"
+                  placeholder="الدرجة الجديدة"
+                  className="border p-2 rounded w-full"
+                  value={newPromotion.new_degree || ''}
+                  onChange={e => setNewPromotion((prev: typeof newPromotion) => ({ ...prev, new_degree: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label htmlFor="new_level" className="block font-semibold mb-1">المرحلة الجديدة</label>
+                <input
+                  id="new_level"
+                  type="number"
+                  placeholder="المرحلة الجديدة"
+                  className="border p-2 rounded w-full"
+                  value={newPromotion.new_level || ''}
+                  onChange={e => setNewPromotion((prev: typeof newPromotion) => ({ ...prev, new_level: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label htmlFor="new_salary" className="block font-semibold mb-1">الراتب الجديد</label>
+                <input
+                  id="new_salary"
+                  type="number"
+                  placeholder="الراتب الجديد"
+                  className="border p-2 rounded w-full"
+                  value={newPromotion.new_salary || ''}
+                  onChange={e => setNewPromotion((prev: typeof newPromotion) => ({ ...prev, new_salary: e.target.value }))}
+                />
+              </div>
+  
+              <div>
+                <label htmlFor="due_date" className="block font-semibold mb-1">تاريخ الاستحقاق</label>
+                <input
+                  id="due_date"
+                  type="date"
+                  className="border p-2 rounded w-full"
+                  value={newPromotion.due_date || ''}
+                  onChange={e => setNewPromotion((prev: typeof newPromotion) => ({ ...prev, due_date: e.target.value }))}
+                />
+              </div>
+              <div className="col-span-2">
+                <label htmlFor="note" className="block font-semibold mb-1">ملاحظة</label>
+                <textarea
+                  id="note"
+                  placeholder="ملاحظة"
+                  className="border p-2 rounded w-full"
+                  rows={3}
+                  value={newPromotion.note || ''}
+                  onChange={e => setNewPromotion((prev: typeof newPromotion) => ({ ...prev, note: e.target.value }))}
+                />
+              </div>
+            </div>
+  
+            {/* Buttons */}
+            <div className="flex justify-between">
+              <button
+                className="bg-green-600 text-white px-4 py-2 rounded"
+                onClick={handleInsertOrUpdate}
+                disabled={!newPromotion.employee_id}
+                aria-disabled={!newPromotion.employee_id}
+              >
+                {newPromotion.id ? 'تحديث' : 'حفظ'}
+              </button>
+              <button
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+                onClick={() => setShowForm(false)}
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+  
+      {/* Promotions Table or Messages */}
       {shouldShowData ? (
         filteredPromotions.length > 0 ? (
           <div ref={reportRef} className="overflow-auto border border-gray-300 rounded shadow">
-            <table className="min-w-[900px] w-full border-collapse bordertext-center" dir="rtl">
+            <table className="min-w-[900px] w-full border-collapse border text-center" dir="rtl">
               <thead className="bg-gray-100 sticky top-0 z-10">
                 <tr>
                   <th className="border border-black p-2">الدائرة</th>
@@ -281,39 +462,45 @@ export default function PromotionsPage() {
                   <th className="border border-black p-2">المرحلة الجديدة</th>
                   <th className="border border-black p-2">الراتب الجديد</th>
                   <th className="border border-black p-2">ملاحظة</th>
-                  <th className="border border-black p-2">حذف</th>
+                  <th className="border border-black p-2">تعديل</th>
                 </tr>
               </thead>
               <tbody>
-                  {filteredPromotions.map(p => {
-                    const emp = getEmployee(p.employee_id);
-                    return (
-                      <tr key={p.id}>
-                        <td className="border border-black p-1">{getOfficeName(emp?.office_id)}</td>
-                        <td className="border border-black p-1">{`${emp?.first_name} ${emp?.last_name}`}</td>
-                        <td className="border border-black p-1 text-center">{p.old_degree ?? ''}</td>
-                        <td className="border border-black p-1 text-center">{p.old_level ?? ''}</td>
-                        <td className="border border-black p-1 text-center">{p.old_salary ?? ''}</td>
-                        <td className="border border-black p-1 text-center">{p.due_date ?? ''}</td>
-                        <td className="border border-black p-1 text-center">{p.new_degree ?? ''}</td>
-                        <td className="border border-black p-1 text-center">{p.new_level ?? ''}</td>
-                        <td className="border border-black p-1 text-center">{p.new_salary ?? ''}</td>
-                        <td className="border border-black p-1">{p.note ?? ''}</td>
-                        <td className="border border-black p-1 text-center">
-                          <button
-                            className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
-                            onClick={() => handleDelete(p.id)}
-                          >
-                            حذف
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
+                {filteredPromotions.map(p => {
+                  const emp = getEmployee(p.employee_id);
+                  return (
+                    <tr key={p.id}>
+                      <td className="border border-black p-1">{getOfficeName(emp?.office_id)}</td>
+                      <td className="border border-black p-1">{`${emp?.first_name} ${emp?.last_name}`}</td>
+                      <td className="border border-black p-1 text-center">{p.old_degree ?? ''}</td>
+                      <td className="border border-black p-1 text-center">{p.old_level ?? ''}</td>
+                      <td className="border border-black p-1 text-center">{p.old_salary ?? ''}</td>
+                      <td className="border border-black p-1 text-center">{p.due_date ? new Date(p.due_date).toLocaleDateString() : ''}</td>
+                      <td className="border border-black p-1 text-center">{p.new_degree ?? ''}</td>
+                      <td className="border border-black p-1 text-center">{p.new_level ?? ''}</td>
+                      <td className="border border-black p-1 text-center">{p.new_salary ?? ''}</td>
+                      <td className="border border-black p-1">{p.note ?? ''}</td>
+                      <td className="border border-black p-1">
+                        <button
+                          className="bg-blue-600 text-white px-2 py-1 rounded text-xs"
+                          onClick={() => {
+                            setNewPromotion({ ...p });
+                            const emp = getEmployee(p.employee_id);
+                            setEmployeeSearch(emp ? `${emp.first_name} ${emp.last_name}` : '');
+                            setShowForm(true);
+                          }}
+                          aria-label={`تعديل ترقية الموظف ${emp?.first_name} ${emp?.last_name}`}
+                        >
+                          تعديل
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
             </table>
-            {/* Committee members area - example */}
-            <div>
+          {/* Committee members area - example */}
+                <div>
             <div className="mt-10 text-sm w-full">
                     <div className="grid grid-cols-4 gap-4 text-center">
                       <div>
@@ -349,17 +536,22 @@ export default function PromotionsPage() {
                         />
                       </div>
                     </div>
+
                   </div>
-            </div>
-    </div>
+                </div>
+          </div>
         ) : (
-          <p className="text-center mt-6">لا توجد ترقيات مطابقة للبحث.</p>
+          <div className="text-center p-6 text-gray-700 font-semibold">
+            لا توجد ترقيات مطابقة للمعايير.
+          </div>
         )
       ) : (
-        <p className="text-center mt-6 text-gray-600">
-          الرجاء اختيار دائرة أو اسم موظف مع تاريخ للاستعلام عن الترقيات.
-        </p>
+        <div className="text-center p-6 text-gray-500 italic">
+          يرجى اختيار دائرة أو اسم موظف أو تاريخ للبحث.
+        </div>
       )}
+
+
     </div>
   );
-}
+}  

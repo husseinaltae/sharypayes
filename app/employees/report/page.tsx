@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import Link from 'next/link';
 
 const supabase = createClient();
 
@@ -176,14 +177,21 @@ export default function EmployeeReport() {
         )}
       </div>
 
-      <div className="mt-6 print-hidden">
-        <button
-          onClick={() => window.print()}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          طباعة التقرير
-        </button>
-      </div>
+      <div className="mt-6 print-hidden flex gap-4">
+  <Link
+    href="/employees/new"
+    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center"
+  >
+    إضافة جديد
+  </Link>
+  <button
+    onClick={() => window.print()}
+    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+  >
+    طباعة التقرير
+  </button>
+</div>
+
     </>
   );
 }

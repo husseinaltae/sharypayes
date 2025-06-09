@@ -35,7 +35,7 @@
     "**/*.tsx",
     "next-env.d.ts",
     ".next/types/**/*.ts"
-, ".next/types/app/payments/report2/page.tsx", ".next/types/app/payments/report/page.tsx", ".next/types/app/payments/page.tsx"  ],
+, ".next/types/app/payments/report2/page.tsx", ".next/types/app/payments/report/page.tsx", ".next/types/app/payments/page.tsx", ".next/types/app/payments/edit/page.tsx", ".next/types/app/payments/edit/[id]/page.tsx", ".next/types/app/page.tsx", ".next/types/app/layout.tsx", ".next/types/app/retire-report/page.tsx", ".next/types/app/payments/reportpdf/page.tsx", ".next/types/app/payments/new/page.tsx", ".next/types/app/employees/report/page.tsx"  ],
   "exclude": [
     "node_modules",
     "supabase/functions"

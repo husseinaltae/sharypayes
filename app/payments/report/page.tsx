@@ -94,7 +94,9 @@ export default function PaymentsReportPage() {
   });
 
   const today = new Date().toLocaleString();
-  const shouldShowData = officeFilter || nameFilter;
+
+  const shouldShowData = (officeFilter || nameFilter) && monthFilter;
+
 
   const printReport = () => {
     window.print();
@@ -124,12 +126,7 @@ export default function PaymentsReportPage() {
 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 print:hidden">
-        <input
-          className="border p-2"
-          placeholder="اسم الموظف"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-        />
+
         <select
           className="border p-2"
           value={officeFilter}
@@ -331,22 +328,22 @@ export default function PaymentsReportPage() {
 
 {/* Print button */}
 
-<div className="align-center fixed bottom-4 right-4 print:hidden">
+<div className="fixed bottom-4 right-4 flex space-x-4 print:hidden">
 <Link
     href="/payments/new"
-    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+    className="bg-blue-600 text-white px-3 py-2 ml-3 rounded hover:bg-blue-700 transition"
 >
     إضافة  جديد
   </Link>
   <Link
     href="/payments/edit"
-    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+    className="bg-blue-600 text-white px-3 py-2 mr-3 rounded hover:bg-blue-700 transition"
 >
       تعديل
   </Link>
   <button
     onClick={printReport}
-    className="rounded bg-green-500 text-white align-center px-4 py-2 hover:bg-green-600"
+    className="rounded bg-green-500 text-white align-center px-3 py-2 hover:bg-green-600"
     title="طباعة التقرير"
   >
     🖨️ طباعة التقرير
