@@ -20,20 +20,10 @@ interface PaymentFormErrors {
 
 const plans = [
   {
-    name: 'الخطة الأساسية',
-    price: 'مجانية',
-    features: ['بحث عن راتب موظف', 'بحث عن ترقية', ''],
-  },
-  {
-    name: 'الخطة الاحترافية',
-    price: '20000 د.ع / شهر',
-    features: ['إدارة الرواتب', 'طباعة التقارير', 'إدارة الترقيات'],
-    popular: true,
-  },
-  {
-    name: 'الخطة المؤسسية',
+    name: 'خطة الاشتراك  ',
     price: '30000 د.ع / شهر',
-    features: ['كل الميزات الاحترافية', 'دعم فني', 'إدارة متعددة المستخدمين'],
+    features: [' ميزات احترافية', 'دعم فني',   ],
+    popular: false, // Added popular property
   },
 ];
 
@@ -46,6 +36,7 @@ export default function PricingPlanPage() {
     name: '',
     address: '',
     email: '',
+    password: '',
     phone_number: '',
     parent_id: '',
   });
@@ -179,6 +170,7 @@ export default function PricingPlanPage() {
         name: '',
         address: '',
         email: '',
+        password: '',
         phone_number: '',
         parent_id: '',
       });
@@ -231,6 +223,34 @@ export default function PricingPlanPage() {
       return;
     }
 
+    // Sign up with Supabase Auth
+    const { data: userData, error: authError } = await supabase.auth.signUp({
+      email:form.email,
+      password:form.password,
+    });
+
+    if (authError) {
+      setStatus('❌ حدث خطأ أثناء تسجيل الموظف: ' + authError.message);
+      setIsSubmitting(false);
+      return;
+    }
+
+
+    // TODO: There is no need for the following users table. The one in the auth schema is sufficient.
+    // Insert into users table
+    // const { error: dbError } = await supabase.from('users').insert({
+    //   id: userData.user?.id,
+    //   email: form.email,
+    //   phone: form.phone_number,
+    //   office_id: insertedOffice.Id,
+    // });
+
+    // if (dbError) {
+    //   setStatus('❌ حدث خطأ أثناء تسجيل الموظف: ' + dbError.message);
+    //   setIsSubmitting(false);
+    //   return;
+    // }
+
     // Simulate payment
     await new Promise((res) => setTimeout(res, 1500));
 
@@ -257,6 +277,7 @@ export default function PricingPlanPage() {
         name: '',
         address: '',
         email: '',
+        password: '',
         phone_number: '',
         parent_id: '',
       });
@@ -275,9 +296,9 @@ export default function PricingPlanPage() {
   // ... UI rendering goes here ...
   return (
     <div className="rtl text-right p-6 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">اختر خطة الاشتراك</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">  </h1>
   
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-1 gap-6">
         {plans.map((plan) => (
           <div
             key={plan.name}
@@ -355,6 +376,14 @@ export default function PricingPlanPage() {
       name="email"
       placeholder="البريد الإلكتروني "
       value={form.email}
+      onChange={handleChange}
+      className="w-full border rounded px-3 py-2 mb-3"
+    />
+    <input
+      type="password"
+      name="password"
+      placeholder="كلمة المرور"
+      value={form.password}
       onChange={handleChange}
       className="w-full border rounded px-3 py-2 mb-3"
     />

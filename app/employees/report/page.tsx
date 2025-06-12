@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import Link from 'next/link';
+import { getCurrentUser } from '@/utils/getCurrentUser';
 
 const supabase = createClient();
 
@@ -14,6 +15,23 @@ export default function EmployeeReport() {
   const [jobTitleFilter, setJobTitleFilter] = useState('');
   const [offices, setOffices] = useState<string[]>([]);
   const [jobTitles, setJobTitles] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchUserOffice = async () => {
+      const session = await supabase.auth.getSession();
+      const user = session.data?.session?.user;
+  
+      if (user) {
+        const currentUser = await getCurrentUser(user.email!, 'userMobile'); // Replace 'userMobile' as needed
+        setOffices([currentUser?.userOfficeId ?? null]);
+        // setOfficeName is not defined, removing this line
+      }
+    };
+  
+    fetchUserOffice();
+  }, []);
+  
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -177,12 +195,18 @@ export default function EmployeeReport() {
         )}
       </div>
 
-      <div className="mt-6 print-hidden flex gap-4">
+      <div className="mt-6 print-hidden flex gap-4 fixed ">
   <Link
     href="/employees/new"
+    className=" bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center"
+  >
+    إضافة موظف جديد
+  </Link>
+  <Link
+    href="/employees/edit"
     className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center"
   >
-    إضافة جديد
+    تعديل معلومات موظف
   </Link>
   <button
     onClick={() => window.print()}

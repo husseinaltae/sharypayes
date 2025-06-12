@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
@@ -11,9 +11,12 @@ export function AuthButton() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const session = supabase.auth.getSession().then(({ data }) => {
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
       setUser(data.session?.user ?? null);
-    });
+    };
+
+    getSession();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
@@ -30,7 +33,6 @@ export function AuthButton() {
   };
 
   if (!user) {
-    // Not signed in => show Sign In button linking to sign-in page
     return (
       <Link
         href="/sign-in"
@@ -41,13 +43,15 @@ export function AuthButton() {
     );
   }
 
-  // Signed in => show Sign Out button
   return (
-    <button
-      onClick={handleLogout}
-      className="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-    >
-      تسجيل الخروج
-    </button>
+    <div className="flex items-center gap-2">
+      <span className="text-sm text-gray-800 dark:text-gray-200">{user.email}</span>
+      <button
+        onClick={handleLogout}
+        className="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+      >
+        تسجيل الخروج
+      </button>
+    </div>
   );
 }

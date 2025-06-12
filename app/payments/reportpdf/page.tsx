@@ -3,10 +3,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import Link from 'next/link';
-// Define interfaces for our data structures
+
 interface Office {
   name: string;
-  // Add id if available and used for keys, e.g., id: number;
 }
 
 interface Employee {
@@ -24,7 +23,7 @@ interface PaymentEntry {
 }
 
 interface Payment {
-  id: number | string; // Assuming 'id' is the primary key from 'payments' table
+  id: number | string;
   employee: Employee | null;
   payments_entries: PaymentEntry[] | null;
   month?: string | null;
@@ -38,7 +37,6 @@ interface Payment {
   net_credits?: number | null;
   net_debits?: number | null;
   note?: string | null;
-  // Include other fields from the 'payments' table if used
 }
 
 export default function PaymentsReportPage() {
@@ -50,6 +48,7 @@ export default function PaymentsReportPage() {
   const [officeFilter, setOfficeFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
   const [nameFilter, setNameFilter] = useState('');
+  const [loadingCopy, setLoadingCopy] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -93,8 +92,135 @@ export default function PaymentsReportPage() {
     return matchesMonth && matchesName && matchesOffice;
   });
 
+  // Helper: get next month in 'YYYY-MM'
+  const getNextMonth = (monthStr: string) => {
+    if (!monthStr) return null;
+    const [year, month] = monthStr.split('-').map(Number);
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const nextYear = month === 12 ? year + 1 : year;
+    return `${nextYear}-${nextMonth.toString().padStart(2, '0')}`;
+  };
+
+  // Helper: normalize 'YYYY-MM' to 'YYYY-MM-01'
+  const normalizeMonth = (m: string) => m.length === 7 ? `${m}-01` : m;
+
+  const handleCopyToNextMonth = async () => {
+    if (!monthFilter) {
+      alert("يرجى اختيار الشهر الحالي أولاً");
+      return;
+    }
+  
+    const currentMonthDate = normalizeMonth(monthFilter);
+    const nextMonthStr = getNextMonth(monthFilter);
+    const nextMonthDate = nextMonthStr ? normalizeMonth(nextMonthStr) : null;
+  
+    if (!nextMonthDate) {
+      alert("شهر غير صالح");
+      return;
+    }
+  
+    const confirmCopy = window.confirm(`هل تريد إنشاء رواتب لشهر ${nextMonthStr}?`);
+    if (!confirmCopy) return;
+  
+    setLoadingCopy(true);
+  
+    try {
+      // 1. Check if payments for the next month already exist
+      const { data: existing, error: checkError } = await supabase
+        .from('payments')
+        .select('id')
+        .eq('month', nextMonthDate)
+        .limit(1);
+  
+      if (checkError) throw checkError;
+  
+      if (existing && existing.length > 0) {
+        alert('تم إنشاء رواتب هذا الشهر مسبقًا!');
+        setLoadingCopy(false);
+        return;
+      }
+  
+      // 2. Fetch current month payments including entries
+      let query = supabase
+        .from('payments')
+        .select(`
+          *,
+          payments_entries:payments_entries (
+            id, type, title, amount
+          )
+        `)
+        .eq('month', currentMonthDate);
+  
+      if (officeFilter) {
+        query = query.in('employee_id', filteredPayments.map(p => p.employee?.id).filter(Boolean));
+      }
+  
+      const { data: currentPayments, error: fetchError } = await query;
+  
+      if (fetchError) throw fetchError;
+  
+      if (!currentPayments || currentPayments.length === 0) {
+        alert('لا توجد رواتب لهذا الشهر.');
+        setLoadingCopy(false);
+        return;
+      }
+  
+      // 3. Prepare and insert payments and entries
+      const newPayments: any[] = [];
+      const newEntries: any[] = [];
+  
+      for (const oldPayment of currentPayments) {
+        const { id: oldId, created_at, payments_entries, ...rest } = oldPayment;
+        const newPaymentId = crypto.randomUUID();
+  
+        newPayments.push({
+          ...rest,
+          id: newPaymentId,
+          month: nextMonthDate,
+          created_at: new Date().toISOString(),
+        });
+  
+        if (payments_entries && payments_entries.length > 0) {
+          for (const entry of payments_entries) {
+            newEntries.push({
+              id: crypto.randomUUID(),
+              payment_id: newPaymentId,
+              type: entry.type,
+              title: entry.title,
+              amount: entry.amount,
+            });
+          }
+        }
+      }
+  
+      // 4. Insert new payments
+      const { error: insertPaymentsError } = await supabase
+        .from('payments')
+        .insert(newPayments);
+  
+      if (insertPaymentsError) throw insertPaymentsError;
+  
+      // 5. Insert new payments_entries
+      if (newEntries.length > 0) {
+        const { error: insertEntriesError } = await supabase
+          .from('payments_entries')
+          .insert(newEntries);
+  
+        if (insertEntriesError) throw insertEntriesError;
+      }
+  
+      alert('تم إنشاء رواتب الشهر القادم بنجاح!');
+    } catch (error: any) {
+      alert(`حدث خطأ: ${error.message || error}`);
+    } finally {
+      setLoadingCopy(false);
+    }
+  };
+  
+
   const today = new Date().toLocaleString();
-  const shouldShowData = officeFilter || nameFilter;
+
+  const shouldShowData = (officeFilter || nameFilter) && monthFilter;
 
   const printReport = () => {
     window.print();
@@ -124,12 +250,7 @@ export default function PaymentsReportPage() {
 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 print:hidden">
-        <input
-          className="border p-2"
-          placeholder="اسم الموظف"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-        />
+
         <select
           className="border p-2"
           value={officeFilter}
@@ -160,31 +281,29 @@ export default function PaymentsReportPage() {
           </div>
 
           <h1 className="text-xl font-bold mb-4 text-center">تقرير الرواتب</h1>
-
-          {/* Table */}
           
           {/* Table */}
-<table className="w-full text-sm border mb-4">
-  <thead>
-    <tr className="bg-gray-200 text-center">
-      <th className="border p-2 print:hidden">الدائرة</th>
-      <th className="border p-2">الاسم</th>
-      <th className="border p-2">الدرجة</th>
-      <th className="border p-2">المرحلة</th>
-      <th className="border p-2">الراتب</th>
-      <th className="border p-2">% الشهادة</th>
-      <th className="border p-2">بدل الشهادة</th>
-      <th className="border p-2">% الخطورة</th>
-      <th className="border p-2">بدل الخطورة</th>
-      <th className="border p-2">بدل النقل</th>
-      <th className="border p-2">% التقاعد</th>
-      <th className="border p-2">استقطاع التقاعد</th>
-      <th className="border p-2"> الاستحقاق</th>
-      <th className="border p-2">الاستقطاع</th>
-      <th className="border p-2 font-bold">الصافي</th>
-    </tr>
-  </thead>
-  <tbody>
+    <table className="w-full text-sm border mb-4">
+      <thead>
+        <tr className="bg-gray-200 text-center">
+          <th className="border p-2 print:hidden">الدائرة</th>
+          <th className="border p-2">الاسم</th>
+          <th className="border p-2">الدرجة</th>
+          <th className="border p-2">المرحلة</th>
+          <th className="border p-2">الراتب</th>
+          <th className="border p-2">% الشهادة</th>
+          <th className="border p-2">بدل الشهادة</th>
+          <th className="border p-2">% الخطورة</th>
+          <th className="border p-2">بدل الخطورة</th>
+          <th className="border p-2">بدل النقل</th>
+          <th className="border p-2">% التقاعد</th>
+          <th className="border p-2">استقطاع التقاعد</th>
+          <th className="border p-2"> الاستحقاق</th>
+          <th className="border p-2">الاستقطاع</th>
+          <th className="border p-2 font-bold">الصافي</th>
+        </tr>
+      </thead>
+      <tbody>
     {filteredPayments.map((p, idx) => { // Added idx for fallback key if p.id is not reliable
       const emp = p.employee;
       // Robust calculations: default null/undefined to 0
@@ -329,29 +448,36 @@ export default function PaymentsReportPage() {
       )}
 
 
-{/* Print button */}
-
-<div className="align-center fixed bottom-4 right-4 print:hidden">
-<Link
+{/* Print + Actions Buttons - Fully Responsive */}
+<div className="fixed bottom-4 right-4 z-50 print:hidden flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 sm:w-auto">
+  <Link
     href="/payments/new"
-    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
->
-    إضافة  جديد
+    className="bg-blue-600 text-white text-center px-4 py-2 rounded hover:bg-blue-700 transition w-full sm:w-auto"
+  >
+    إضافة راتب جديد
   </Link>
   <Link
     href="/payments/edit"
-    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
->
-      تعديل
+    className="bg-blue-600 text-white text-center px-4 py-2 rounded hover:bg-blue-700 transition w-full sm:w-auto"
+  >
+    تعديل راتب
   </Link>
   <button
     onClick={printReport}
-    className="rounded bg-green-500 text-white align-center px-4 py-2 hover:bg-green-600"
+    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition w-full sm:w-auto"
     title="طباعة التقرير"
   >
-    🖨️ طباعة التقرير
+    طباعة التقرير
+  </button>
+  <button
+    onClick={handleCopyToNextMonth}
+    disabled={loadingCopy}
+    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 transition w-full sm:w-auto"
+  >
+    {loadingCopy ? "جاري الإنشاء..." : "إنشاء رواتب الشهر القادم"}
   </button>
 </div>
+
 
     </div>
   );

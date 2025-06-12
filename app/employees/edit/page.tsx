@@ -111,18 +111,20 @@ export default function EmployeesForm() {
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6 bg-white rounded-xl shadow-md text-sm" dir="rtl">
 
+<h2 className="text-lg font-bold">نموذج تعديل معلومات موظف</h2>
+
       {/* 🔍 Search Input */}
-     {/*} <input
+      <input
         type="text"
         placeholder="ابحث بالاسم"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="mb-4 w-full sm:w-72 px-3 py-2 border rounded-md text-right"
-      />*/}
+      />
 
       {/* 🧾 Preview + Collapse Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-        <h2 className="text-lg font-bold">نموذج إضافة  موظف جديد</h2>
+      
         <div className="flex gap-2">
           {/*<button
             type="button"
@@ -137,7 +139,7 @@ export default function EmployeesForm() {
             className="bg-gray-400 text-white px-4 py-1.5 rounded hover:bg-gray-500"
           >
             {collapsed ? 'إظهار الحقول' : 'إخفاء الحقول'}
-          </button> */} 
+          </button>*/}
         </div>
       </div>
 
